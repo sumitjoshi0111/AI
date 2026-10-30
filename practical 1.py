@@ -39,99 +39,42 @@
 # ============================================================
 
 
-# ---------- Reflex agent (condition-action rules) ----------
-def reflex_vacuum_agent(percept, world_is_clean):
-    """Return an action using only the current percept."""
-    location = percept[0]
-    status = percept[1]
 
+# Simple Reflex Vacuum Cleaner Agent
+
+def vacuum_agent(location, status):
     if status == "DIRTY":
         return "SUCK"
-    if world_is_clean:
-        # Nothing more to do; moving around would only lose points.
-        return "NO_OP"
-    if location == "A":
+    elif location == "A":
         return "RIGHT"
-    return "LEFT"
-
-
-# ---------- Environment helpers ----------
-def is_world_clean(environment):
-    return environment["A"] == "CLEAN" and environment["B"] == "CLEAN"
-
-
-def show_state(environment, agent_location):
-    # Mark the agent's square with brackets
-    if agent_location == "A":
-        print("   World:  [A:" + environment["A"] + "]   B:" + environment["B"])
     else:
-        print("   World:   A:" + environment["A"] + "   [B:" + environment["B"] + "]")
+        return "LEFT"
 
 
-def run_simulation(initial_a, initial_b, start_location, max_steps):
-    environment = {"A": initial_a, "B": initial_b}
-    agent_location = start_location
-    score = 0
+def main():
+    environment = {"A": "DIRTY", "B": "DIRTY"}
+    location = "A"
 
-    print("Initial state -> A:" + initial_a + ", B:" + initial_b +
-          ", Agent at " + start_location)
-    print("-" * 60)
-
-    for step in range(1, max_steps + 1):
-        percept = (agent_location, environment[agent_location])
-        action = reflex_vacuum_agent(percept, is_world_clean(environment))
-
-        print("Step " + str(step) + ": Percept = " + str(percept) +
-              "  ->  Action = " + action)
-
-        # Apply the action to the environment
-        if action == "SUCK":
-            environment[agent_location] = "CLEAN"
-            score = score + 10
-        elif action == "LEFT":
-            agent_location = "A"
-            score = score - 1
-        elif action == "RIGHT":
-            agent_location = "B"
-            score = score - 1
-        # NO_OP changes nothing
-
-        show_state(environment, agent_location)
-
-        # Stop once everything is clean and the agent has chosen NO_OP
-        if action == "NO_OP":
-            print("World is clean. Agent stops.")
+    while True:
+        # Stop when both rooms are clean
+        if environment["A"] == "CLEAN" and environment["B"] == "CLEAN":
+            print("Both rooms are clean. STOP")
             break
 
-    print("Final score: " + str(score))
-    print("=" * 60)
-    return score
+        status = environment[location]
+        action = vacuum_agent(location, status)
+
+        print("Location:", location, "Action:", action)
+
+        if action == "SUCK":
+            environment[location] = "CLEAN"
+        elif action == "RIGHT":
+            location = "B"
+        else:
+            location = "A"
+
+    print("Final Environment:", environment)
 
 
-# ---------- Main program ----------
 if __name__ == "__main__":
-    print("SIMPLE REFLEX VACUUM CLEANER AGENT")
-    print("Performance: +10 per square cleaned, -1 per move")
-    print("=" * 60)
-
-    statuses = ["CLEAN", "DIRTY"]
-    locations = ["A", "B"]
-    case_number = 1
-    total_score = 0
-
-    # Try every possible starting configuration
-    for a_status in statuses:
-        for b_status in statuses:
-            for start in locations:
-                print("CASE " + str(case_number))
-                total_score = total_score + run_simulation(a_status, b_status, start, 10)
-                case_number = case_number + 1
-
-    print("Average score over 8 cases: " + str(total_score / 8))
-    print()
-    print("Rationality analysis:")
-    print("- The agent cleans a dirty square before moving anywhere.")
-    print("- It moves only when the current square is clean and work remains.")
-    print("- It does NO_OP when everything is clean, so it wastes no points.")
-    print("- Limitation: a reflex agent has no memory, so it relies on the")
-    print("  environment reporting that the whole world is clean.")
+    main()
